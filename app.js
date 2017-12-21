@@ -9,7 +9,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.get("/", function(req, res) {
-res.send("you just sent a GET request, friend");
+res.send("you just sent a GET request,mmsssss friend");
 });
 
 var server = app.listen( process.env.PORT || 3000, function(){
