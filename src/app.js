@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import User from './models/User';
+import routes from './routes';
 
 
 require('../config/passport');
@@ -37,10 +38,8 @@ mongoose.set('debug', true);
 
 
 
-// TODO delete
-app.get("/", function(req, res) {
-res.send("Welcome to Happystack API.");
-});
+// Routes
+app.use('/', routes);
 
 
 
