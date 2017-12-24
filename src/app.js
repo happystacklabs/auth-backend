@@ -3,6 +3,10 @@ import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import User from './models/User';
 
+
+require('../config/passport');
+
+
 export const app = express();
 
 
