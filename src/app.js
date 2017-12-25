@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import User from './models/User';
 import routes from './routes';
 import errorhandler from 'errorhandler';
+import cors from 'cors';
 // import session from 'express-session';
 
 
@@ -14,6 +15,12 @@ export const app = express();
 
 // Disable powered by for security reason
 app.disable('x-powered-by');
+
+
+
+
+// configure cors
+app.use(cors({ origin: 'http://localhost:3000' }));
 
 
 
