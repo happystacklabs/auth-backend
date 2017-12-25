@@ -111,4 +111,20 @@ describe('users', () => {
     });
   });
 
+
+
+  describe('GET: /user', () => {
+    it('should return the current JSON representation of the current user', () => {
+      //TODO
+    });
+
+    it('should return error if not loggued in', () => {
+      //TODO
+    });
+
+    it('should retur 401 error if user is not found', () => {
+      //TODO
+    });
+  });
+
 });
