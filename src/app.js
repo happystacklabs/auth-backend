@@ -56,7 +56,7 @@ if(isProduction){
   mongoose.connect('mongodb://127.0.0.1:27017/happystack', {
     useMongoClient: true
   });
-  mongoose.set('debug', true);
+  // mongoose.set('debug', true);
 }
 
 
@@ -87,10 +87,7 @@ app.use(function(req, res, next) {
 // will print stacktrace
 if (!isProduction) {
   app.use(function(err, req, res, next) {
-    console.log(err.stack);
-
     res.status(err.status || 500);
-
     res.json({'errors': {
       message: err.message,
       error: err

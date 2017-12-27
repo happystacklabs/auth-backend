@@ -45,9 +45,17 @@ describe('User', () => {
     });
 
     it('should allow only alphanumeric', (done) => {
-      user.username = '@#*';
+      user.username = '@#******';
       user.validate(function(err) {
         expect(err.errors.username.message).toBe('Is invalid');
+        done();
+      });
+    });
+
+    it('should be more than 5 characters', (done) => {
+      user.username = 'foo';
+      user.validate(function(err) {
+        expect(err.errors.username.message).toBe('Must be at least 5 characters');
         done();
       });
     });
@@ -86,10 +94,10 @@ describe('User', () => {
 
   describe('username and email', () => {
     it('should be unique', async (done) => {
-      const firstUser = await new User({username: 'foo', email: 'bar@bar.com'});
+      const firstUser = await new User({username: 'foobar', email: 'bar@bar.com'});
       await firstUser.save();
 
-      const secondUser = await User({username: 'foo', email: 'bar@bar.com'});
+      const secondUser = await User({username: 'foobar', email: 'bar@bar.com'});
       secondUser.validate(function(err) {
         expect(err.errors.username.message).toBe('Is already taken');
         expect(err.errors.email.message).toBe('Is already taken');
@@ -111,13 +119,13 @@ describe('User', () => {
 
     it('set a salt to the user', () => {
       expect(user.salt).toBe(undefined);
-      user.setPassword('foo');
+      user.setPassword('foobar');
       expect(user.salt.length).toBe(32);
     });
 
     it('set an hash to the user', () => {
       expect(user.hash).toBe(undefined);
-      user.setPassword('foo');
+      user.setPassword('foobar');
       expect(user.hash.length).toBe(1024);
     });
   });

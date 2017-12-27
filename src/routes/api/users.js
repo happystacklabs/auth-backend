@@ -12,6 +12,14 @@ const User = mongoose.model('User');
 
 // POST: /users
 routes.post('/users', function(req, res, next) {
+  if (!req.body.user.password) {
+    return res.status(422).json({errors: {password: "Can't be blank"}});
+  }
+
+  if (req.body.user.password.length < 5) {
+    return res.status(422).json({errors: {password: "Must be at least 5 characters"}});
+  }
+
   const user = new User();
 
   user.username = req.body.user.username;
@@ -75,6 +83,9 @@ routes.put('/user', auth.required, function(req, res, next) {
       user.email = req.body.user.email;
     }
     if (typeof req.body.user.password !== 'undefined') {
+      if (req.body.user.password.length < 5) {
+        return res.status(422).json({errors: {password: "Must be at least 5 characters"}});
+      }
       user.setPassword(req.body.user.password);
     }
 

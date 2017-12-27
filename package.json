@@ -20,7 +20,8 @@
     "start": "node ./src/app.js",
     "dev": "nodemon --exec npm run babel-node -- ./src/index.js",
     "babel-node": "babel-node --presets=env",
-    "test": "jest --watch"
+    "test": "jest --watch",
+    "coverage": "jest --coverage && open ./coverage/lcov-report/src/index.html"
   },
   "dependencies": {
     "body-parser": "^1.18.2",

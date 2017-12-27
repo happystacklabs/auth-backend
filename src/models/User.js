@@ -13,6 +13,7 @@ const UserSchema = new mongoose.Schema({
     lowercase: true,
     required: [true, 'Can\'t be blank'],
     match: [/^[a-zA-Z0-9]+$/, 'Is invalid'],
+    minlength: [5, 'Must be at least 5 characters'],
     index: true,
   },
   email: {
