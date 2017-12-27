@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import uniqueValidator from 'mongoose-unique-validator';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import secret from '../../config/';
+import secret from '../config/';
 
 
 // The schema

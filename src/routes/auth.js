@@ -1,5 +1,5 @@
 import jwt from 'express-jwt';
-import secret from '../../config';
+import secret from '../config';
 
 
 

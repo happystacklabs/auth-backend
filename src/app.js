@@ -63,7 +63,7 @@ if(isProduction){
 
 
 // passport
-require('../config/passport');
+require('./config/passport');
 
 
 
