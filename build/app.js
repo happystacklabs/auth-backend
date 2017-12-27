@@ -48,7 +48,7 @@ var app = exports.app = (0, _express2.default)();
 app.use((0, _helmet2.default)());
 
 // configure cors
-app.use((0, _cors2.default)({ origin: 'http://localhost:3000' }));
+app.use((0, _cors2.default)({ origin: process.env.CORS || 'http://localhost:3000' }));
 
 // Configuration
 app.use(require('morgan')('dev'));
