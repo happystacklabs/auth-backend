@@ -6,8 +6,8 @@ mongoose.Promise = global.Promise;
 
 describe('User', () => {
   beforeAll((done) => {
-    mongoose.connect('mongodb://127.0.0.1:27017/happystack-test', {useMongoClient: true}, () => {
-      mongoose.connection.db.dropDatabase(() => {done()});
+    mongoose.connect('mongodb://127.0.0.1:27017/happystack-test', { useMongoClient: true }, () => {
+      mongoose.connection.db.dropDatabase(() => { done(); });
     });
   });
 
@@ -38,7 +38,7 @@ describe('User', () => {
     });
 
     it('should be required', (done) => {
-      user.validate(function(err) {
+      user.validate((err) => {
         expect(err.errors.username.message).toBe('Can\'t be blank');
         done();
       });
@@ -46,7 +46,7 @@ describe('User', () => {
 
     it('should allow only alphanumeric', (done) => {
       user.username = '@#******';
-      user.validate(function(err) {
+      user.validate((err) => {
         expect(err.errors.username.message).toBe('Is invalid');
         done();
       });
@@ -54,7 +54,7 @@ describe('User', () => {
 
     it('should be more than 5 characters', (done) => {
       user.username = 'foo';
-      user.validate(function(err) {
+      user.validate((err) => {
         expect(err.errors.username.message).toBe('Must be at least 5 characters');
         done();
       });
@@ -77,7 +77,7 @@ describe('User', () => {
     });
 
     it('should be required', (done) => {
-      user.validate(function(err) {
+      user.validate((err) => {
         expect(err.errors.email.message).toBe('Can\'t be blank');
         done();
       });
@@ -85,7 +85,7 @@ describe('User', () => {
 
     it('should allow only email format', (done) => {
       user.email = '@#*';
-      user.validate(function(err) {
+      user.validate((err) => {
         expect(err.errors.email.message).toBe('Is invalid');
         done();
       });
@@ -94,11 +94,11 @@ describe('User', () => {
 
   describe('username and email', () => {
     it('should be unique', async (done) => {
-      const firstUser = await new User({username: 'foobar', email: 'bar@bar.com'});
+      const firstUser = await new User({ username: 'foobar', email: 'bar@bar.com' });
       await firstUser.save();
 
-      const secondUser = await User({username: 'foobar', email: 'bar@bar.com'});
-      secondUser.validate(function(err) {
+      const secondUser = await User({ username: 'foobar', email: 'bar@bar.com' });
+      secondUser.validate((err) => {
         expect(err.errors.username.message).toBe('Is already taken');
         expect(err.errors.email.message).toBe('Is already taken');
         firstUser.remove();
@@ -152,7 +152,7 @@ describe('User', () => {
 
   describe('generateJWT', () => {
     it('return a JWT token', () => {
-      const user = new User({username: 'foo', email: 'foo@bar.com'});
+      const user = new User({ username: 'foo', email: 'foo@bar.com' });
       user.setPassword('foobar');
       expect(user.generateJWT().length).toBe(191);
     });
@@ -160,13 +160,13 @@ describe('User', () => {
 
   describe('toAuthJSON', () => {
     it('return a JSON of a user for authentification', () => {
-      const user = new User({username: 'foo', email: 'foo@bar.com'});
+      const user = new User({ username: 'foo', email: 'foo@bar.com' });
       user.setPassword('foobar');
       const token = user.generateJWT();
       expect(user.toAuthJSON()).toEqual({
         username: 'foo',
         email: 'foo@bar.com',
-        token: token
+        token,
       });
     });
   });

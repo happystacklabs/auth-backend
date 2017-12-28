@@ -1,4 +1,4 @@
-import {Router} from 'express';
+import { Router } from 'express';
 import userRoutes from './users';
 
 
@@ -7,18 +7,19 @@ const routes = Router();
 routes.use('/', userRoutes);
 
 
-
-routes.use(function(err, req, res, next) {
+routes.use((err, req, res, next) => {
   if (err.name === 'ValidationError') {
     return res.status(422).json({
-      errors: Object.keys(err.errors).reduce(function(errors, key){
-        errors[key] = err.errors[key].message;
-        return errors;
-      }, {})
+      errors: Object.keys(err.errors).reduce((errors, key) => {
+        const newErrors = errors;
+        newErrors[key] = err.errors[key].message;
+        return newErrors;
+      }, {}),
     });
   }
 
   return next(err);
 });
+
 
 export default routes;

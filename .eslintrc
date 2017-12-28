@@ -1,0 +1,15 @@
+{
+  "extends": "airbnb",
+  "env": {
+    "browser": false,
+    "node": true,
+    "es6": true,
+    "mocha": true,
+    "jest/globals": true,
+  },
+  "plugins": ["jest"],
+  "rules": {
+    arrow-body-style: ["error", "as-needed"],
+    no-shadow: ["error", { "allow": ["done", "err", "res", "count"] }],
+  }
+}
