@@ -25,7 +25,8 @@
     "build": "babel ./src --out-dir ./build --copy-files",
     "babel-node": "babel-node --presets=env",
     "test": "jest --watch",
-    "coverage": "jest --coverage && open ./coverage/lcov-report/src/index.html"
+    "coverage": "jest --coverage && open ./coverage/lcov-report/src/index.html",
+    "deploy": "runner deploy.sh"
   },
   "dependencies": {
     "body-parser": "1.18.2",
