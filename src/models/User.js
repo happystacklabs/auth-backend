@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-// Add the unique validation plugin
+// add the unique validation plugin
 UserSchema.plugin(uniqueValidator, { message: 'Is already taken' });
 
 
@@ -72,5 +72,6 @@ UserSchema.methods.toAuthJSON = () => {
 
 
 const User = mongoose.model('User', UserSchema);
+
 
 export default User;

@@ -5,9 +5,9 @@ import errorhandler from 'errorhandler';
 import cors from 'cors';
 import helmet from 'helmet';
 import routes from './routes';
-// import session from 'express-session';
 
 
+// express app
 const app = express();
 
 
@@ -19,9 +19,11 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CORS || 'http://localhost:3000' }));
 
 
-// Configuration
+// add morgan for logging
 app.use(require('morgan')('dev'));
 
+
+// add bodyParser for transforming request's body into json
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
@@ -36,7 +38,7 @@ if (!isProduction) {
 }
 
 
-// Configure mongoose
+// configure mongoose
 if (isProduction) {
   mongoose.connect(process.env.MONGODB_URI, {
     useMongoClient: true,
@@ -49,11 +51,11 @@ if (isProduction) {
 }
 
 
-// passport
+// require passport
 require('./config/passport');
 
 
-// Routes
+// add routes
 app.use('/', routes);
 
 

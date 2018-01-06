@@ -4,9 +4,12 @@ import userRoutes from './users';
 
 const routes = Router();
 
+
+// add users routes
 routes.use('/', userRoutes);
 
 
+// error handler middleware for ValidationError
 routes.use((err, req, res, next) => {
   if (err.name === 'ValidationError') {
     return res.status(422).json({
