@@ -7,7 +7,7 @@ import cors from 'cors';
 // eslint-disable-next-line no-unused-vars
 import User from './models/User';
 import routes from './routes';
-// import session from 'express-session';
+import session from 'express-session';
 
 
 // environment constants
@@ -41,8 +41,12 @@ app.use(require('morgan')('dev'));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-// app.use(session({ secret: 'happystack', cookie: { maxAge: 60000 },
-// resave: false, saveUninitialized: false  }));
+app.use(session({
+  secret: process.env.COOKIES_SECRET,
+  cookie: { maxAge: 60000 },
+  resave: false,
+  saveUninitialized: false,
+}));
 
 
 // check if production env
