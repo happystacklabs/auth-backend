@@ -1,13 +1,16 @@
+/* eslint-disable import/first */
+const opbeat = require('opbeat').start();
+
 import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import helmet from 'helmet';
 import errorhandler from 'errorhandler';
 import cors from 'cors';
+import session from 'express-session';
 // eslint-disable-next-line no-unused-vars
 import User from './models/User';
 import routes from './routes';
-import session from 'express-session';
 
 
 // environment constants
@@ -42,7 +45,7 @@ app.use(require('morgan')('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(session({
-  secret: process.env.COOKIES_SECRET,
+  secret: process.env.SESSION_SECRET,
   cookie: { maxAge: 60000 },
   resave: false,
   saveUninitialized: false,
@@ -83,6 +86,10 @@ app.use((req, res, next) => {
 
 // The error handler must be before any other error middleware
 app.use(Raven.errorHandler());
+
+
+// opbeat performance monitoring
+app.use(opbeat.middleware.express());
 
 
 // development error handler
