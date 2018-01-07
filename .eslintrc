@@ -9,7 +9,9 @@
   },
   "plugins": ["jest"],
   "rules": {
-    arrow-body-style: ["error", "as-needed"],
-    no-shadow: ["error", { "allow": ["done", "err", "res", "count"] }],
+    "arrow-body-style": ["error", "as-needed"],
+    "no-shadow": ["error", { "allow": ["done", "err", "res", "count"] }],
+    "no-unused-vars": ["warn"],
+    "func-names": ["error", "never"],
   }
 }

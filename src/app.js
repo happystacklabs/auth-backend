@@ -1,14 +1,16 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
+import helmet from 'helmet';
 import errorhandler from 'errorhandler';
 import cors from 'cors';
-import helmet from 'helmet';
+// eslint-disable-next-line no-unused-vars
+import User from './models/User';
 import routes from './routes';
+// import session from 'express-session';
 
 
-// express app
-const app = express();
+export const app = express();
 
 
 // activate security headers
@@ -19,13 +21,13 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CORS || 'http://localhost:3000' }));
 
 
-// add morgan for logging
+// Configuration
 app.use(require('morgan')('dev'));
 
-
-// add bodyParser for transforming request's body into json
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+// app.use(session({ secret: 'happystack', cookie: { maxAge: 60000 },
+// resave: false, saveUninitialized: false  }));
 
 
 // check if production env
@@ -38,7 +40,7 @@ if (!isProduction) {
 }
 
 
-// configure mongoose
+// Configure mongoose
 if (isProduction) {
   mongoose.connect(process.env.MONGODB_URI, {
     useMongoClient: true,
@@ -51,11 +53,11 @@ if (isProduction) {
 }
 
 
-// require passport
+// passport
 require('./config/passport');
 
 
-// add routes
+// Routes
 app.use('/', routes);
 
 
@@ -70,7 +72,8 @@ app.use((req, res, next) => {
 // development error handler
 // will print stacktrace
 if (!isProduction) {
-  app.use((err, req, res) => {
+  // eslint-disable-next-line no-unused-vars
+  app.use((err, req, res, next) => {
     res.status(err.status || 500);
     res.json({
       errors: {
@@ -84,7 +87,8 @@ if (!isProduction) {
 
 // production error handler
 // no stacktraces leaked to user
-app.use((err, req, res) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
   res.status(err.status || 500);
   res.json({
     errors: {

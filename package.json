@@ -21,12 +21,12 @@
   "main": "app.js",
   "scripts": {
     "start": "node ./build/index.js",
-    "dev": "nodemon --exec npm run babel-node -- ./src/index.js",
+    "dev": "nodemon --exec npm run babel-node ./src/index.js",
     "build": "babel ./src --out-dir ./build --copy-files",
     "babel-node": "babel-node --presets=env",
     "test": "jest --watch",
     "coverage": "jest --coverage && open ./coverage/lcov-report/src/index.html",
-    "deploy": "runner deploy.sh"
+    "lint": "eslint src/**"
   },
   "dependencies": {
     "body-parser": "1.18.2",
@@ -40,10 +40,8 @@
     "mongoose": "4.13.7",
     "mongoose-unique-validator": "1.0.6",
     "morgan": "1.9.0",
-    "nsp": "^3.1.0",
     "passport": "0.4.0",
     "passport-local": "1.0.0",
-    "raven": "^2.3.0",
     "throng": "4.0.0"
   },
   "devDependencies": {
