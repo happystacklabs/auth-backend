@@ -10,7 +10,22 @@ import routes from './routes';
 // import session from 'express-session';
 
 
+// environment constants
+require('dotenv').config();
+
+
 export const app = express();
+
+
+// configure Raven logging
+const Raven = require('raven');
+
+
+// Must configure Raven before doing anything else with it
+Raven.config(process.env.SENTRY).install();
+
+// The request handler must be the first middleware on the app
+app.use(Raven.requestHandler());
 
 
 // activate security headers
@@ -18,7 +33,7 @@ app.use(helmet());
 
 
 // configure cors
-app.use(cors({ origin: process.env.CORS || 'http://localhost:3000' }));
+app.use(cors({ origin: process.env.CORS }));
 
 
 // Configuration
@@ -41,16 +56,9 @@ if (!isProduction) {
 
 
 // Configure mongoose
-if (isProduction) {
-  mongoose.connect(process.env.MONGODB_URI, {
-    useMongoClient: true,
-  });
-} else {
-  mongoose.connect('mongodb://127.0.0.1:27017/happystack', {
-    useMongoClient: true,
-  });
-  // mongoose.set('debug', true);
-}
+mongoose.connect(process.env.MONGODB_URI, {
+  useMongoClient: true,
+});
 
 
 // passport
@@ -67,6 +75,10 @@ app.use((req, res, next) => {
   err.status = 404;
   next(err);
 });
+
+
+// The error handler must be before any other error middleware
+app.use(Raven.errorHandler());
 
 
 // development error handler

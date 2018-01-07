@@ -7,12 +7,12 @@ function start() {
     process.exit();
   });
 
-  app.listen(process.env.PORT || 3001, () => {});
+  app.listen(process.env.PORT, () => {});
 }
 
 
 // workers
-const WORKERS = process.env.WEB_CONCURRENCY || 4;
+const WORKERS = process.env.WEB_CONCURRENCY;
 throng({
   workers: WORKERS,
   lifetime: Infinity,
