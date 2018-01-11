@@ -59,11 +59,11 @@ tasksCommand[2]=task3
 # Task 4
 ################################################################################
 tasks[3]='Run build'
-tasksCommand[3]='git push heroku master'
+tasksCommand[3]='npm run build'
 
 
 ################################################################################
 # Task 5
 ################################################################################
 tasks[4]='Deploy Heroku'
-tasksCommand[4]='git push heroku master'
+tasksCommand[4]='cd ./build && git push heroku master'
