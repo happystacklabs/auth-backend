@@ -5,7 +5,6 @@ import mongoose from 'mongoose';
 import helmet from 'helmet';
 import errorhandler from 'errorhandler';
 import cors from 'cors';
-import session from 'express-session';
 // eslint-disable-next-line no-unused-vars
 import User from './models/User';
 import routes from './routes';
@@ -31,12 +30,6 @@ app.use(require('morgan')('dev'));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  cookie: { maxAge: 60000 },
-  resave: false,
-  saveUninitialized: false,
-}));
 
 
 // check if production env
