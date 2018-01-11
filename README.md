@@ -1,6 +1,8 @@
 <img src=".github/happystack.png" alt="Happystack" width="150" height="150" />
 
 # Happystack Auth Backend
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/happystacklabs/auth-backend.svg)](https://greenkeeper.io/)
 ![Version](https://img.shields.io/badge/Version-0.1.0-green.svg?style=flat)
 ![license](https://img.shields.io/github/license/mashape/apistatus.svg)
 
