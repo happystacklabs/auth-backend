@@ -28,7 +28,8 @@
     "ci": "jest",
     "coverage": "jest --coverage && open ./coverage/lcov-report/src/index.html",
     "lint": "eslint src/**",
-    "deploy": "runner deploy.sh"
+    "deploy": "runner deploy.sh",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "body-parser": "1.18.2",
