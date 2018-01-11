@@ -1,6 +1,4 @@
 /* eslint-disable import/first */
-const opbeat = require('opbeat').start();
-
 import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
@@ -20,23 +18,12 @@ require('dotenv').config();
 export const app = express();
 
 
-// configure Raven logging
-const Raven = require('raven');
-
-
-// Must configure Raven before doing anything else with it
-Raven.config(process.env.SENTRY).install();
-
-// The request handler must be the first middleware on the app
-app.use(Raven.requestHandler());
+// configure cors
+app.use(cors({ origin: process.env.CORS }));
 
 
 // activate security headers
 app.use(helmet());
-
-
-// configure cors
-app.use(cors({ origin: process.env.CORS }));
 
 
 // Configuration
@@ -82,14 +69,6 @@ app.use((req, res, next) => {
   err.status = 404;
   next(err);
 });
-
-
-// The error handler must be before any other error middleware
-app.use(Raven.errorHandler());
-
-
-// opbeat performance monitoring
-app.use(opbeat.middleware.express());
 
 
 // development error handler
