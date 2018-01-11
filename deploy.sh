@@ -66,4 +66,4 @@ tasksCommand[3]='npm run build'
 # Task 5
 ################################################################################
 tasks[4]='Deploy Heroku'
-tasksCommand[4]='cd ./build && git push heroku master'
+tasksCommand[4]='git subtree push --prefix build heroku master'
