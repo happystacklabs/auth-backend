@@ -1,17 +1,17 @@
 {
-  "name": "@happystack/auth-backend",
-  "version": "0.2.1",
+  "name": "@happystack/backend-boilerplate",
+  "version": "0.2.2",
   "private": false,
   "author": "Heinrich Tremblay",
-  "homepage": "https://auth.happystack.io",
-  "repository": "git+https://github.com/happystacklabs/auth-backend.git",
+  "homepage": "https://boilerplate.happystack.io",
+  "repository": "git+https://github.com/happystacklabs/backend-boilerplate.git",
   "bugs": {
-    "url": "https://github.com/happystacklabs/auth-backend/issues"
+    "url": "https://github.com/happystacklabs/backend-boilerplate/issues"
   },
   "keywords": [
     "api",
     "backend",
-    "auth",
+    "boilerplate",
     "express"
   ],
   "license": "MIT",

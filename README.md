@@ -1,11 +1,11 @@
 <img src=".github/happystack.png" alt="Happystack" width="150" height="150" />
 
-# Happystack Auth Backend
-![Version](https://img.shields.io/badge/Version-0.1.0-green.svg?style=flat)
+# Happystack Backend Boilerplate
+![Version](https://img.shields.io/badge/Version-0.2.2-green.svg?style=flat)
 ![license](https://img.shields.io/github/license/mashape/apistatus.svg)
 
 
-#### Express backend for Auth.
+#### Express backend that goes along Happystack Frontend Boilerplate.
 
 
 ## 🔧 Installation
@@ -50,4 +50,4 @@
 
 
 ## 💡 Feedback
-[Create an issue or feature request](https://github.com/happystacklabs/auth-backend/issues/new).
+[Create an issue or feature request](https://github.com/happystacklabs/backend-boilerplate/issues/new).

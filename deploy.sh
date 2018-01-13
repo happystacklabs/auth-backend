@@ -51,7 +51,7 @@ task3() {
   nsp check
   snyk test
 }
-tasks[2]='Security scan'
+tasks[2]='Security audit'
 tasksCommand[2]=task3
 
 
@@ -59,4 +59,4 @@ tasksCommand[2]=task3
 # Task 4
 ################################################################################
 tasks[3]='Deploy Heroku'
-tasksCommand[3]='git subtree push --prefix build heroku master'
+tasksCommand[3]='git push heroku master'
