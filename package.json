@@ -32,6 +32,9 @@
     "heroku-postbuild": "npm run build"
   },
   "dependencies": {
+    "babel-cli": "6.26.0",
+    "babel-preset-env": "1.6.1",
+    "bcrypt": "^1.0.3",
     "body-parser": "1.18.2",
     "cors": "2.8.4",
     "dotenv": "^4.0.0",
@@ -45,9 +48,7 @@
     "morgan": "1.9.0",
     "passport": "0.4.0",
     "passport-local": "1.0.0",
-    "throng": "4.0.0",
-    "babel-cli": "6.26.0",
-    "babel-preset-env": "1.6.1"
+    "throng": "4.0.0"
   },
   "devDependencies": {
     "eslint": "^4.14.0",

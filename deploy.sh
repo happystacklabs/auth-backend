@@ -25,7 +25,7 @@ tasksCommand=()
 ################################################################################
 currentVersion=$(grep -m1 version package.json | awk -F: '{ print $2 }' | sed 's/[", ]//g')
 display="Current Version: ${currentVersion}"
-title='Happystack Auth Backend'
+title='Happystack Backend Boilerplate'
 subtitle='Deploy'
 
 
