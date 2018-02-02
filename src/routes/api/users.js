@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import { Router } from 'express';
 import passport from 'passport';
+import { check, validationResult } from 'express-validator/check';
+import { matchedData, sanitize } from 'express-validator/filter';
 import auth from '../auth';
 
 
@@ -8,36 +10,47 @@ const routes = Router();
 const User = mongoose.model('User');
 
 
-// POST: /users
-routes.post('/users', (req, res, next) => {
-  if (!req.body.user.password) {
-    return res.status(422).json({ errors: { password: "Can't be blank" } });
-  }
+/*------------------------------------------------------------------------------
+  POST: /users
+------------------------------------------------------------------------------*/
+routes.post('/users', [
+  check('password').exists().withMessage('Can\'t be blank'),
+  check('password').isLength({ min: 5 }).withMessage('Must be at least 5 characters'),
+  check('email').exists().withMessage('Can\'t be blank'),
+  check('email').isEmail().withMessage('Is invalid'),
+  sanitize('email').normalizeEmail({ remove_dots: false }),
+], (req, res, next) => {
+  const errors = validationResult(req);
 
-  if (req.body.user.password.length < 5) {
-    return res.status(422).json({ errors: { password: 'Must be at least 5 characters' } });
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.mapped() });
   }
 
   const user = new User();
-
-  user.username = req.body.user.username;
-  user.email = req.body.user.email;
-  user.setPassword(req.body.user.password);
+  const reqUser = matchedData(req);
+  user.username = req.body.username;
+  user.email = reqUser.email;
+  user.setPassword(reqUser.password);
 
   return user.save().then(() => {
-    res.json({ user: user.toAuthJSON() });
+    res.json(user.toAuthJSON());
   }).catch(next);
 });
 
 
-// POST: /users/login
-routes.post('/users/login', (req, res, next) => {
-  if (!req.body.user.email) {
-    return res.status(422).json({ errors: { email: "Can't be blank" } });
-  }
-
-  if (!req.body.user.password) {
-    return res.status(422).json({ errors: { password: "Can't be blank" } });
+/*------------------------------------------------------------------------------
+  POST: /users/login
+------------------------------------------------------------------------------*/
+routes.post('/users/login', [
+  check('password').exists().withMessage('Can\'t be blank'),
+  check('password').isLength({ min: 5 }).withMessage('Must be at least 5 characters'),
+  check('email').exists().withMessage('Can\'t be blank'),
+  check('email').isEmail().withMessage('Is invalid'),
+  sanitize('email').normalizeEmail({ remove_dots: false }),
+], (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.mapped() });
   }
 
   return passport.authenticate('local', { session: false }, (err, user, info) => {
@@ -46,7 +59,7 @@ routes.post('/users/login', (req, res, next) => {
     if (user) {
       /* eslint-disable no-param-reassign */
       user.token = user.generateJWT();
-      return res.json({ user: user.toAuthJSON() });
+      return res.json(user.toAuthJSON());
     }
 
     return res.status(422).json(info);
@@ -54,40 +67,56 @@ routes.post('/users/login', (req, res, next) => {
 });
 
 
-// GET: /user
+/*------------------------------------------------------------------------------
+ GET: /user
+-------------------------------------------------------------------------------*/
 routes.get('/user', auth.required, (req, res, next) => {
   User.findById(req.payload.id).then((user) => {
     if (!user) { return res.sendStatus(401); }
 
-    return res.json({ user: user.toAuthJSON() });
+    return res.json(user.toAuthJSON());
   }).catch(next);
 });
 
 
-// PUT: /user
-routes.put('/user', auth.required, (req, res, next) => {
+/*------------------------------------------------------------------------------
+  PUT: /user
+-------------------------------------------------------------------------------*/
+routes.put('/user', auth.required, [
+  check('password').optional().isLength({ min: 5 }).withMessage('Must be at least 5 characters'),
+  sanitize('email').normalizeEmail({ remove_dots: false }),
+], (req, res, next) => {
   User.findById(req.payload.id).then((user) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.mapped() });
+    }
+
     if (!user) { return res.sendStatus(401); }
 
     // only update fields that was modified
-    if (typeof req.body.user.username !== 'undefined') {
-      user.username = req.body.user.username;
+    if (typeof req.body.username !== 'undefined') {
+      user.username = req.body.username;
     }
-    if (typeof req.body.user.email !== 'undefined') {
-      user.email = req.body.user.email;
+    if (typeof req.body.email !== 'undefined') {
+      user.email = req.body.email;
     }
-    if (typeof req.body.user.password !== 'undefined') {
-      if (req.body.user.password.length < 5) {
-        return res.status(422).json({ errors: { password: 'Must be at least 5 characters' } });
-      }
-      user.setPassword(req.body.user.password);
+    if (typeof req.body.password !== 'undefined') {
+      user.setPassword(req.body.password);
     }
 
     return user.save().then(() => {
-      res.json({ user: user.toAuthJSON() });
+      res.json(user.toAuthJSON());
     });
   }).catch(next);
 });
 
+
+/*------------------------------------------------------------------------------
+  POST: /users/forgot
+-------------------------------------------------------------------------------*/
+// routes.post('/users/forgot', (req, res, next) => {
+//
+// });
 
 export default routes;

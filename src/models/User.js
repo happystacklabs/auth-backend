@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import uniqueValidator from 'mongoose-unique-validator';
-import crypto from 'crypto';
+// import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import secret from '../config/';
@@ -38,19 +38,25 @@ const UserSchema = new mongoose.Schema({
 UserSchema.plugin(uniqueValidator, { message: 'Is already taken' });
 
 
-// setPassword method
+/*------------------------------------------------------------------------------
+  setPassword
+------------------------------------------------------------------------------*/
 UserSchema.methods.setPassword = function (password) {
   this.hash = bcrypt.hashSync(password, saltRounds);
 };
 
 
-// validPassword method
-UserSchema.methods.validPassword = (password) => {
-  bcrypt.compare(password, this.hash, (err, res) => res);
+/*------------------------------------------------------------------------------
+  validPassword
+------------------------------------------------------------------------------*/
+UserSchema.methods.validPassword = function (password) {
+  return bcrypt.compareSync(password, this.hash);
 };
 
 
-// generateJWT method
+/*------------------------------------------------------------------------------
+  generateJWT
+------------------------------------------------------------------------------*/
 UserSchema.methods.generateJWT = function () {
   const today = new Date();
   const expiration = new Date(today.getDate() + 60);
@@ -64,15 +70,15 @@ UserSchema.methods.generateJWT = function () {
 };
 
 
-// toAuthJSON method
+/*------------------------------------------------------------------------------
+  toAuthJSON
+-------------------------------------------------------------------------------*/
 UserSchema.methods.toAuthJSON = function () {
-  const user = {
+  return {
     username: this.username,
     email: this.email,
     token: this.generateJWT(),
   };
-
-  return user;
 };
 
 

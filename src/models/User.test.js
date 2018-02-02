@@ -4,6 +4,10 @@ import User from './User';
 
 mongoose.Promise = global.Promise;
 
+
+/*------------------------------------------------------------------------------
+  User
+-------------------------------------------------------------------------------*/
 describe('User', () => {
   beforeAll((done) => {
     mongoose.connect('mongodb://127.0.0.1:27017/happystack-test', { useMongoClient: true }, () => {
@@ -17,6 +21,9 @@ describe('User', () => {
     });
   });
 
+  /*----------------------------------------------------------------------------
+    username
+  -----------------------------------------------------------------------------*/
   describe('username', () => {
     let user;
     beforeEach(() => {
@@ -61,6 +68,9 @@ describe('User', () => {
     });
   });
 
+  /*----------------------------------------------------------------------------
+    email
+  ----------------------------------------------------------------------------*/
   describe('email', () => {
     let user;
     beforeEach(() => {
@@ -107,6 +117,9 @@ describe('User', () => {
     });
   });
 
+  /*----------------------------------------------------------------------------
+    setPassword
+  ----------------------------------------------------------------------------*/
   describe('setPassword', () => {
     let user;
     beforeEach(() => {
@@ -117,16 +130,10 @@ describe('User', () => {
       user.remove();
     });
 
-    it('set a salt to the user', () => {
-      expect(user.salt).toBe(undefined);
-      user.setPassword('foobar');
-      expect(user.salt.length).toBe(32);
-    });
-
     it('set an hash to the user', () => {
       expect(user.hash).toBe(undefined);
       user.setPassword('foobar');
-      expect(user.hash.length).toBe(1024);
+      expect(user.hash.length).toBe(60);
     });
   });
 
@@ -150,6 +157,9 @@ describe('User', () => {
     });
   });
 
+  /*----------------------------------------------------------------------------
+    generateJWT
+  ----------------------------------------------------------------------------*/
   describe('generateJWT', () => {
     it('return a JWT token', () => {
       const user = new User({ username: 'foo', email: 'foo@bar.com' });
@@ -158,6 +168,9 @@ describe('User', () => {
     });
   });
 
+  /*----------------------------------------------------------------------------
+    toAuthJSON
+  ----------------------------------------------------------------------------*/
   describe('toAuthJSON', () => {
     it('return a JSON of a user for authentification', () => {
       const user = new User({ username: 'foo', email: 'foo@bar.com' });
