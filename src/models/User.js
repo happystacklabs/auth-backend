@@ -30,6 +30,8 @@ const UserSchema = new mongoose.Schema({
     index: true,
   },
   hash: String,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
   // salt: String,
 }, { timestamps: true });
 

@@ -1,11 +1,14 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
+import async from 'async';
 import { app } from '../../../app';
 import User from '../../../models/User';
 
 
-// jest.mock('../../models/User');
-// import User from '../../models/User';
+jest.mock('mailgun-js');
+// eslint-disable-next-line
+import mailgun from 'mailgun-js';
+
 
 /*------------------------------------------------------------------------------
   users
@@ -34,8 +37,8 @@ describe('users', () => {
         password: 'foobaz',
       };
 
-      afterEach(() => {
-        User.collection.drop();
+      afterEach((done) => {
+        User.remove({}, () => { done(); });
       });
 
       it('should save the user to database if request is valid', (done) => {
@@ -264,8 +267,8 @@ describe('users', () => {
         });
     });
 
-    afterEach(() => {
-      User.collection.drop();
+    afterEach((done) => {
+      User.remove({}, () => { done(); });
     });
 
     it('should return a JSON user representation if request is valid', (done) => {
@@ -357,8 +360,8 @@ describe('users', () => {
     GET: /user
   ----------------------------------------------------------------------------*/
   describe('GET: /user', () => {
-    afterEach(() => {
-      User.collection.drop();
+    beforeEach((done) => {
+      User.remove({}, () => { done(); });
     });
 
     it('should return the current JSON representation of the current user', (done) => {
@@ -435,6 +438,10 @@ describe('users', () => {
     PUT: /user
   -----------------------------------------------------------------------------*/
   describe('PUT: /user', () => {
+    beforeEach((done) => {
+      User.remove({}, () => { done(); });
+    });
+
     const payload = {
       username: 'foobar',
       email: 'foo@bar.com',
@@ -536,29 +543,404 @@ describe('users', () => {
     POST: /users/forgot
   ----------------------------------------------------------------------------*/
   describe('POST: /users/forgot', () => {
-    it('should send an error if email is empty', () => {
+    beforeEach((done) => {
+      User.remove({}, () => { done(); });
     });
 
-    it('should send an error if email is not valid', () => {
+    it('should send an error if email is empty', (done) => {
+      const payload = {};
+      request(app)
+        .post('/api/users/forgot')
+        .send(payload)
+        .expect(422)
+        .end((err, res) => {
+          const data = JSON.parse(res.text);
+          expect(data.errors.email.msg).toBe('Can\'t be blank');
+          done();
+        });
     });
 
-    it('should send an error if email doesnt exist', () => {
+    it('should send an error if email is not valid', (done) => {
+      const payload = { email: 'foo@..' };
+      request(app)
+        .post('/api/users/forgot')
+        .send(payload)
+        .expect(422)
+        .end((err, res) => {
+          const data = JSON.parse(res.text);
+          expect(data.errors.email.msg).toBe('Is invalid');
+          done();
+        });
     });
 
-    it('should set a token on user.passwordResetToken', () => {
+    it('should send an error if email doesnt exist', (done) => {
+      const payload = { email: 'foo@bar.com' };
+      request(app)
+        .post('/api/users/forgot')
+        .send(payload)
+        .expect(422)
+        .end((err, res) => {
+          const data = JSON.parse(res.text);
+          expect(data.errors.email.msg).toBe('The email address is not associated with any account.');
+          done();
+        });
     });
 
-    it('should set a time of 1 hour from now on user.passwordResetExpires', () => {
+    it('should set a token on user.passwordResetToken', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz',
+      };
+
+      const send = jest.fn((args, callback) => callback());
+      const mg = {
+        messages: () => ({
+          send,
+        }),
+      };
+      mailgun.mockImplementation(() => mg);
+      expect(send.mock.calls.length).toBe(0);
+
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end(() => {
+          request(app)
+            .post('/api/users/forgot')
+            .send({ email: payload.email })
+            .expect(200)
+            .end(() => {
+              User.findOne({ email: payload.email }, (error, user) => {
+                expect(user.passwordResetToken.length).toBe(32);
+                expect(send.mock.calls.length).toBe(1);
+                done();
+              });
+            });
+        });
     });
 
-    it('should send a reset password email', () => {
+    it('should set a time of 1 hour from now on user.passwordResetExpires', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'test@happystack.io',
+        password: 'foobaz',
+      };
+
+      const send = jest.fn((args, callback) => callback());
+      const mg = {
+        messages: () => ({
+          send,
+        }),
+      };
+      mailgun.mockImplementation(() => mg);
+      expect(send.mock.calls.length).toBe(0);
+
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end(() => {
+          request(app)
+            .post('/api/users/forgot')
+            .send({ email: payload.email })
+            .expect(200)
+            .end(() => {
+              User.findOne({ email: payload.email }, (error, user) => {
+                const date = new Date(Date.now() + 3600000);
+                expect(user.passwordResetExpires.getHours()).toBe(date.getHours());
+                expect(send.mock.calls.length).toBe(1);
+                done();
+              });
+            });
+        });
+    });
+
+    it('should send a reset password email', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'test@happystack.io',
+        password: 'foobaz',
+      };
+
+      const send = jest.fn((args, callback) => callback());
+      const mg = {
+        messages: () => ({
+          send,
+        }),
+      };
+      mailgun.mockImplementation(() => mg);
+      expect(send.mock.calls.length).toBe(0);
+
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end(() => {
+          request(app)
+            .post('/api/users/forgot')
+            .send({ email: payload.email })
+            .expect(200)
+            .end(() => {
+              expect(send.mock.calls.length).toBe(1);
+              expect(send.mock.calls[0][0].to).toBe(payload.email);
+              done();
+            });
+        });
     });
   });
 
   /*----------------------------------------------------------------------------
     POST: /users/reset
   ----------------------------------------------------------------------------*/
-  describe('POST: /users/forgot', () => {
+  describe('POST: /users/reset', () => {
+    beforeEach((done) => {
+      User.remove({}, () => { done(); });
+    });
 
+    it('should send an error if password is less than 5 characters', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz',
+      };
+
+      const passwordPayload = { password: 'bar', passwordConfirm: 'bar' };
+
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end(() => {
+          request(app)
+            .post('/api/users/reset')
+            .send(passwordPayload)
+            .expect(200)
+            .end((err, res) => {
+              const data = JSON.parse(res.text);
+              expect(data.errors.password.msg).toBe('Must be at least 5 characters');
+              expect(data.errors.passwordConfirm.msg).toBe('Must be at least 5 characters');
+              done();
+            });
+        });
+    });
+
+    it('should send an error if passwords dont match', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz',
+      };
+
+      const passwordPayload = { password: 'foobar', passwordConfirm: 'bazfoo' };
+
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end(() => {
+          request(app)
+            .post('/api/users/reset')
+            .send(passwordPayload)
+            .expect(200)
+            .end((err, res) => {
+              const data = JSON.parse(res.text);
+              expect(data.errors.passwordConfirm.msg).toBe('Passwords must match');
+              done();
+            });
+        });
+    });
+
+    it('should send an error if reset token is invalid', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz',
+      };
+
+      const passwordPayload = { password: 'foobar', passwordConfirm: 'foobar', token: 'foo' };
+
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end(() => {
+          request(app)
+            .post('/api/users/reset')
+            .send(passwordPayload)
+            .expect(200)
+            .end((err, res) => {
+              const data = JSON.parse(res.text);
+              expect(data.errors.token.msg).toBe('Password reset token is invalid or has expired');
+              done();
+            });
+        });
+    });
+
+    it('should send an error if reset token is expired', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz',
+      };
+
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end(() => {
+          request(app)
+            .post('/api/users/forgot')
+            .send({ email: payload.email })
+            .expect(200)
+            .end(() => {
+              User.findOne({ email: payload.email }, (error, user) => {
+                const userCopy = user;
+                userCopy.passwordResetExpires = Date.now() - 8000000000;
+                userCopy.save(() => {
+                  const passwordPayload = {
+                    password: 'foobar',
+                    passwordConfirm: 'foobar',
+                    token: userCopy.passwordResetToken,
+                  };
+                  request(app)
+                    .post('/api/users/reset')
+                    .send(passwordPayload)
+                    .expect(200)
+                    .end((err, res) => {
+                      const data = JSON.parse(res.text);
+                      expect(data.errors.token.msg).toBe('Password reset token is invalid or has expired');
+                      done();
+                    });
+                });
+              });
+            });
+        });
+    });
+
+    it('should change the user password to the new password', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz',
+      };
+
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end(() => {
+          request(app)
+            .post('/api/users/forgot')
+            .send({ email: payload.email })
+            .expect(200)
+            .end(() => {
+              User.findOne({ email: payload.email }, (error, user) => {
+                const passwordPayload = {
+                  password: 'foobar',
+                  passwordConfirm: 'foobar',
+                  token: user.passwordResetToken,
+                };
+                const { hash } = user;
+                request(app)
+                  .post('/api/users/reset')
+                  .send(passwordPayload)
+                  .expect(200)
+                  .end(() => {
+                    User.findOne({ email: payload.email }, (err, userNew) => {
+                      expect(userNew.hash).not.toBe(hash);
+                      done();
+                    });
+                  });
+              });
+            });
+        });
+    });
+
+    it('should reset the token and token expiration to undefined', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz',
+      };
+
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end(() => {
+          request(app)
+            .post('/api/users/forgot')
+            .send({ email: payload.email })
+            .expect(200)
+            .end(() => {
+              User.findOne({ email: payload.email }, (error, user) => {
+                const passwordPayload = {
+                  password: 'foobar',
+                  passwordConfirm: 'foobar',
+                  token: user.passwordResetToken,
+                };
+                request(app)
+                  .post('/api/users/reset')
+                  .send(passwordPayload)
+                  .expect(200)
+                  .end(() => {
+                    User.findOne({ email: payload.email }, (err, userNew) => {
+                      expect(userNew.passwordResetToken).toBe(undefined);
+                      expect(userNew.passwordResetExpires).toBe(undefined);
+                      done();
+                    });
+                  });
+              });
+            });
+        });
+    });
+
+    it('should send a confirmation email', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz',
+      };
+
+      const send = jest.fn((args, callback) => callback());
+      const mg = {
+        messages: () => ({
+          send,
+        }),
+      };
+      mailgun.mockImplementation(() => mg);
+      expect(send.mock.calls.length).toBe(0);
+
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end(() => {
+          request(app)
+            .post('/api/users/forgot')
+            .send({ email: payload.email })
+            .expect(200)
+            .end(() => {
+              User.findOne({ email: payload.email }, (error, user) => {
+                const passwordPayload = {
+                  password: 'foobar',
+                  passwordConfirm: 'foobar',
+                  token: user.passwordResetToken,
+                };
+                request(app)
+                  .post('/api/users/reset')
+                  .send(passwordPayload)
+                  .expect(200)
+                  .end(() => {
+                    expect(send.mock.calls.length).toBe(2);
+                    expect(send.mock.calls[1][0].to).toBe(payload.email);
+                    done();
+                  });
+              });
+            });
+        });
+    });
   });
 });
