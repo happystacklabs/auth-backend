@@ -1,7 +1,7 @@
 <img src=".github/happystack.png" alt="Happystack" width="150" height="150" />
 
 # Happystack Backend Boilerplate
-![Version](https://img.shields.io/badge/Version-0.2.2-green.svg?style=flat)
+![Version](https://img.shields.io/badge/Version-0.3.0-green.svg?style=flat)
 ![license](https://img.shields.io/github/license/mashape/apistatus.svg)
 
 
@@ -39,9 +39,23 @@
  **Update user**
  ```
  /**
-  * PUT: /user
+  * PUT: /api/user
   * Authentification required
   */
+```
+
+**Forgot password**
+```
+/**
+ * POST: /api/users/forgot
+ */
+```
+
+**Reset password**
+```
+/**
+ * POST: /api/users/reset
+ */
 ```
 
 

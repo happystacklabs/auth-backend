@@ -159,7 +159,7 @@ routes.post('/users/forgot', [
               If you did not request this, please ignore this email and your password will remain unchanged.\n`,
       };
 
-      mg.messages().send(data, (error) => res.status(200).json({ msg: 'sent' }));
+      mg.messages().send(data, () => res.status(200).json({ msg: 'sent' }));
     },
   ]);
 });

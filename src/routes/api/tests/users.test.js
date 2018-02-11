@@ -1,6 +1,5 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
-import async from 'async';
 import { app } from '../../../app';
 import User from '../../../models/User';
 
