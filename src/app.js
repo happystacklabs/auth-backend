@@ -3,6 +3,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import helmet from 'helmet';
+import path from 'path';
 import errorhandler from 'errorhandler';
 import cors from 'cors';
 // eslint-disable-next-line no-unused-vars
@@ -30,6 +31,7 @@ app.use(require('morgan')('dev'));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use('/uploads', express.static('uploads'));
 
 
 // check if production env

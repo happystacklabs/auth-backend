@@ -32,6 +32,7 @@ const UserSchema = new mongoose.Schema({
   hash: String,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  avatar: String,
   // salt: String,
 }, { timestamps: true });
 
@@ -79,6 +80,7 @@ UserSchema.methods.toAuthJSON = function () {
   return {
     username: this.username,
     email: this.email,
+    avatar: this.avatar,
     token: this.generateJWT(),
   };
 };

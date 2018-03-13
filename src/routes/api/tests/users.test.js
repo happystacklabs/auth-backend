@@ -1,5 +1,7 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
+import fs from 'fs';
+import path from 'path';
 import { app } from '../../../app';
 import User from '../../../models/User';
 
@@ -426,7 +428,7 @@ describe('users', () => {
             .set('Authorization', 'Token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVhNDM4MWU0NzY5ZDIxMjRhZjQ3NmFiMiIsInVzZXJuYW1lIjoiZm9vYmFyIiwiZXhwaXJhdGlvbiI6MCwiaWF0IjoxNTE0MzczNjA0fQ.UzDmWdo_F5uUQpvkado6oj99bhHHc1LSGgunWFkjRzI')
             .expect(401)
             .end((err, res) => {
-              expect(res.text).toBe('Unauthorized');
+              expect(res.text).toContain('Unauthorized');
               done();
             });
         });
@@ -938,6 +940,229 @@ describe('users', () => {
                     done();
                   });
               });
+            });
+        });
+    });
+  });
+
+  /*----------------------------------------------------------------------------
+    POST: /user/avatar
+  ----------------------------------------------------------------------------*/
+  describe('POST: /user/avatar', () => {
+    it('should required to be auth', (done) => {
+      const payload = { file: {} };
+      request(app)
+        .post('/api/user/avatar')
+        .send(payload)
+        .expect(401)
+        .end((err, res) => {
+          const data = JSON.parse(res.text);
+          expect(data.errors.message).toBe('No authorization token was found');
+          done();
+        });
+    });
+
+    it('should send an error if file is not jpg or png', (done) => {
+      User.collection.drop();
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz123',
+      };
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end((err, res) => {
+          const token = `Token ${res.body.token}`;
+          request(app)
+            .post('/api/user/avatar')
+            .set('Authorization', token)
+            .attach('file', `${__dirname}/test.tiff`)
+            .expect(200)
+            .end((err, res) => {
+              const data = JSON.parse(res.text);
+              expect(data.errors.file.msg).toBe('Must be a JPG or PNG');
+              User.collection.drop();
+              done();
+            });
+        });
+    });
+
+    it('should save the uploaded image', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz123',
+      };
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end((err, res) => {
+          const token = `Token ${res.body.token}`;
+          request(app)
+            .post('/api/user/avatar')
+            .set('Authorization', token)
+            .attach('file', `${__dirname}/test.png`)
+            .expect(200)
+            .end((err, res) => {
+              const data = JSON.parse(res.text);
+              const filePath = path.join(__dirname, `../../../../${data.path}`);
+              expect(fs.existsSync(filePath)).toBe(true);
+              fs.unlinkSync(filePath);
+              User.collection.drop();
+              done();
+            });
+        });
+    });
+
+    it('should send the image url if upload succeed', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz123',
+      };
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end((err, res) => {
+          const token = `Token ${res.body.token}`;
+          request(app)
+            .post('/api/user/avatar')
+            .set('Authorization', token)
+            .attach('file', `${__dirname}/test.png`)
+            .expect(200)
+            .end((err, res) => {
+              const data = JSON.parse(res.text);
+              const filePath = path.join(__dirname, `../../../../${data.path}`);
+              expect(res.body.url.path).toBe(data.url.path);
+              fs.unlinkSync(filePath);
+              User.collection.drop();
+              done();
+            });
+        });
+    });
+
+    it('should save the avatar url to user', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz123',
+      };
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end((err, res) => {
+          const token = `Token ${res.body.token}`;
+          request(app)
+            .post('/api/user/avatar')
+            .set('Authorization', token)
+            .attach('file', `${__dirname}/test.png`)
+            .expect(200)
+            .end((err, res) => {
+              const data = JSON.parse(res.text);
+              const filePath = path.join(__dirname, `../../../../${data.path}`);
+              User.findOne({ email: payload.email }, (err, user) => {
+                expect(user.avatar).toContain(data.path);
+                fs.unlinkSync(filePath);
+                User.collection.drop();
+                done();
+              });
+            });
+        });
+    });
+
+    it('should update the avatar url to user and delete old image', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz123',
+      };
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end((err, res) => {
+          const token = `Token ${res.body.token}`;
+          request(app)
+            .post('/api/user/avatar')
+            .set('Authorization', token)
+            .attach('file', `${__dirname}/test.png`)
+            .expect(200)
+            .end((err, res) => {
+              const dataOriginal = JSON.parse(res.text);
+              const filePathOriginal = path.join(__dirname, `../../../../${dataOriginal.path}`);
+              request(app)
+                .post('/api/user/avatar')
+                .set('Authorization', token)
+                .attach('file', `${__dirname}/test.png`)
+                .expect(200)
+                .end((err, res) => {
+                  const data = JSON.parse(res.text);
+                  const filePath = path.join(__dirname, `../../../../${data.path}`);
+                  User.findOne({ email: payload.email }, (err, user) => {
+                    expect(user.avatar).toContain(data.path);
+                    expect(fs.existsSync(filePathOriginal)).toBe(false);
+                    fs.unlinkSync(filePath);
+                    User.collection.drop();
+                    done();
+                  });
+                });
+            });
+        });
+    });
+  });
+
+  /*----------------------------------------------------------------------------
+    DELETE: /user/avatar
+  ----------------------------------------------------------------------------*/
+  describe('DELETE: /user/avatar', () => {
+    it('should required to be auth', (done) => {
+      request(app)
+        .delete('/api/user/avatar')
+        .expect(401)
+        .end((err, res) => {
+          const data = JSON.parse(res.text);
+          expect(data.errors.message).toBe('No authorization token was found');
+          done();
+        });
+    });
+
+    it('should remove avatar from user, return currentUser and delete file', (done) => {
+      const payload = {
+        username: 'foobar',
+        email: 'foo@bar.com',
+        password: 'foobaz123',
+      };
+      request(app)
+        .post('/api/users')
+        .send(payload)
+        .expect(200)
+        .end((err, res) => {
+          const token = `Token ${res.body.token}`;
+          request(app)
+            .post('/api/user/avatar')
+            .set('Authorization', token)
+            .attach('file', `${__dirname}/test.png`)
+            .expect(200)
+            .end((err, res) => {
+              const data = JSON.parse(res.text);
+              const filePath = path.join(__dirname, `../../../../${data.path}`);
+              request(app)
+                .delete('/api/user/avatar')
+                .set('Authorization', token)
+                .expect(200)
+                .end((err, res) => {
+                  User.findOne({ email: payload.email }, (err, user) => {
+                    expect(user.avatar).toBe(undefined);
+                    expect(fs.existsSync(filePath)).toBe(false);
+                    User.collection.drop();
+                    done();
+                  });
+                });
             });
         });
     });

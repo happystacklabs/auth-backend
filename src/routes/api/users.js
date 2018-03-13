@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
 import { Router } from 'express';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import multer from 'multer';
 import mailgun from 'mailgun-js';
 import async from 'async';
 import passport from 'passport';
@@ -155,7 +158,7 @@ routes.post('/users/forgot', [
         subject: '✔ Reset your password',
         text: `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n
               Please click on the following link, or paste this into your browser to complete the process:\n\n
-              http://boilerplate.happystack.io/password/reset/${token}\n\n
+              http://boilerplate.happys/password/reset/${token}\n\n
               If you did not request this, please ignore this email and your password will remain unchanged.\n`,
       };
 
@@ -214,6 +217,80 @@ routes.post('/users/reset', [
       mg.messages().send(data, (error, body) => res.status(200).json(body));
     },
   ]);
+});
+
+/*------------------------------------------------------------------------------
+  POST: /user/avatar
+-------------------------------------------------------------------------------*/
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    crypto.pseudoRandomBytes(16, (err, raw) => {
+      if (err) return cb(err);
+      return cb(null, raw.toString('hex') + path.extname(file.originalname));
+    });
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.includes('jpg') || file.mimetype.includes('png') || file.mimetype.includes('jpeg')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Must be a JPG or PNG'), false);
+  }
+};
+
+const upload = multer({ storage, fileFilter }).single('file');
+
+routes.post('/user/avatar', auth.required, (req, res, next) => {
+  upload(req, res, (err) => {
+    if (err) {
+      if (err.message === 'Must be a JPG or PNG') {
+        return res.status(422).json({
+          errors: { file: { msg: 'Must be a JPG or PNG' } },
+        });
+      }
+    }
+
+    return User.findById(req.payload.id).then((user) => {
+      if (!user) { return res.sendStatus(401); }
+      if (user.avatar !== undefined) {
+        const filePath = path.join(__dirname, `../../../uploads/${user.avatar.split('uploads/')[1]}`);
+        fs.unlinkSync(filePath);
+      }
+      user.avatar = `${req.protocol}://${req.hostname}:3001/${req.file.path}`;
+      return user.save().then(() => {
+        res.status(200).json({
+          url: `${req.protocol}://${req.hostname}/${req.file.path}`,
+          path: req.file.path,
+          currentUser: user.toAuthJSON(),
+        });
+      });
+    }).catch(next);
+  });
+});
+
+
+/*------------------------------------------------------------------------------
+  DELETE: /user/avatar
+-------------------------------------------------------------------------------*/
+routes.delete('/user/avatar', auth.required, (req, res, next) => {
+  User.findById(req.payload.id).then((user) => {
+    if (!user) { return res.sendStatus(401); }
+    if (user.avatar !== undefined) {
+      const filePath = path.join(__dirname, `../../../uploads/${user.avatar.split('uploads/')[1]}`);
+      fs.unlinkSync(filePath);
+    }
+
+    user.avatar = undefined;
+    return user.save().then(() => {
+      res.status(200).json({
+        currentUser: user.toAuthJSON(),
+      });
+    });
+  }).catch(next);
 });
 
 export default routes;

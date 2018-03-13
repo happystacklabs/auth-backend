@@ -173,12 +173,13 @@ describe('User', () => {
   ----------------------------------------------------------------------------*/
   describe('toAuthJSON', () => {
     it('return a JSON of a user for authentification', () => {
-      const user = new User({ username: 'foo', email: 'foo@bar.com' });
+      const user = new User({ username: 'foo', email: 'foo@bar.com', avatar: 'bar' });
       user.setPassword('foobar');
       const token = user.generateJWT();
       expect(user.toAuthJSON()).toEqual({
         username: 'foo',
         email: 'foo@bar.com',
+        avatar: 'bar',
         token,
       });
     });
