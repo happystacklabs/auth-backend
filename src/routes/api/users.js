@@ -260,7 +260,7 @@ routes.post('/user/avatar', auth.required, (req, res, next) => {
         const filePath = path.join(__dirname, `../../../uploads/${user.avatar.split('uploads/')[1]}`);
         fs.unlinkSync(filePath);
       }
-      user.avatar = `${req.protocol}://${req.hostname}:3001/${req.file.path}`;
+      user.avatar = `${req.protocol}://${req.hostname}/${req.file.path}`;
       return user.save().then(() => {
         res.status(200).json({
           url: `${req.protocol}://${req.hostname}/${req.file.path}`,
