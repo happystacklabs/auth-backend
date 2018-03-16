@@ -247,6 +247,7 @@ routes.post('/user/avatar', auth.required, (req, res, next) => {
   // upload image
   cloudinary.uploader.upload_stream({ resource_type: 'raw' }, (error, avatar) => {
     console.log(avatar);
+    console.log(error);
     User.findById(req.payload.id).then((user) => {
       if (!user) { return res.sendStatus(401); }
       // destroy previous avatar
