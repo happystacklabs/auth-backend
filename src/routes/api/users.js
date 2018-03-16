@@ -244,8 +244,10 @@ routes.post('/user/avatar', auth.required, (req, res, next) => {
     });
   }
 
-  console.log(file);
-  console.log(cloudinary);
+  console.log(process.env.CLOUD_NAME);
+  console.log(process.env.API_KEY);
+  console.log(process.env.API_SECRET);
+  // console.log(cloudinary);
 
   // upload image
   cloudinary.uploader.upload_stream({ resource_type: 'raw' }, (error, avatar) => {
