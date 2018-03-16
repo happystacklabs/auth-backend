@@ -230,6 +230,7 @@ routes.post('/users/reset', [
 -------------------------------------------------------------------------------*/
 routes.post('/user/avatar', auth.required, (req, res, next) => {
   // check if file exist
+  console.log('fooo');
   if (!req.files) {
     return res.status(422).json({
       errors: { file: { msg: 'No file uploaded' } },
