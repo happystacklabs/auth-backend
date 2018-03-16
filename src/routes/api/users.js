@@ -230,7 +230,7 @@ routes.post('/users/reset', [
 -------------------------------------------------------------------------------*/
 routes.post('/user/avatar', auth.required, (req, res, next) => {
   // check if file exist
-  console.log('fooo');
+  console.log(req.files);
   if (!req.files) {
     return res.status(422).json({
       errors: { file: { msg: 'No file uploaded' } },
@@ -247,12 +247,14 @@ routes.post('/user/avatar', auth.required, (req, res, next) => {
 
   // upload image
   return cloudinary.uploader.upload_stream((avatar) => {
+    console.log(avatar);
     User.findById(req.payload.id).then((user) => {
       if (!user) { return res.sendStatus(401); }
       // destroy previous avatar
       if (user.avatar) {
         cloudinary.v2.uploader.destroy(avatar.public_id);
       }
+      console.log(user.avatar);
       // save the new avatar url
       const rawUrl = avatar.secure_url.split('/upload/');
       user.avatar = `${rawUrl[0]}/upload/c_limit,w_120/${rawUrl[1]}`;
