@@ -1,9 +1,7 @@
 import mongoose from 'mongoose';
 import { Router } from 'express';
 import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
-import multer from 'multer';
+import cloudinary from 'cloudinary';
 import mailgun from 'mailgun-js';
 import async from 'async';
 import passport from 'passport';
@@ -14,6 +12,13 @@ import auth from '../auth';
 
 const routes = Router();
 const User = mongoose.model('User');
+
+// Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
 
 
 /*------------------------------------------------------------------------------
@@ -219,57 +224,45 @@ routes.post('/users/reset', [
   ]);
 });
 
+
 /*------------------------------------------------------------------------------
   POST: /user/avatar
 -------------------------------------------------------------------------------*/
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    crypto.pseudoRandomBytes(16, (err, raw) => {
-      if (err) return cb(err);
-      return cb(null, raw.toString('hex') + path.extname(file.originalname));
-    });
-  },
-});
-
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.includes('jpg') || file.mimetype.includes('png') || file.mimetype.includes('jpeg')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Must be a JPG or PNG'), false);
-  }
-};
-
-const upload = multer({ storage, fileFilter }).single('file');
-
 routes.post('/user/avatar', auth.required, (req, res, next) => {
-  upload(req, res, (err) => {
-    if (err) {
-      if (err.message === 'Must be a JPG or PNG') {
-        return res.status(422).json({
-          errors: { file: { msg: 'Must be a JPG or PNG' } },
-        });
-      }
-    }
+  // check if file exist
+  if (!req.files) {
+    return res.status(422).json({
+      errors: { file: { msg: 'No file uploaded' } },
+    });
+  }
 
-    return User.findById(req.payload.id).then((user) => {
+  // check if file is right format
+  const { file } = req.files;
+  if (!(file.mimetype.includes('jpg') || file.mimetype.includes('png') || file.mimetype.includes('jpeg'))) {
+    return res.status(422).json({
+      errors: { file: { msg: 'Must be a JPG or PNG' } },
+    });
+  }
+
+  // upload image
+  return cloudinary.uploader.upload_stream((avatar) => {
+    User.findById(req.payload.id).then((user) => {
       if (!user) { return res.sendStatus(401); }
-      if (user.avatar !== undefined) {
-        const filePath = path.join(__dirname, `../../../uploads/${user.avatar.split('uploads/')[1]}`);
-        fs.unlinkSync(filePath);
+      // destroy previous avatar
+      if (user.avatar) {
+        cloudinary.v2.uploader.destroy(avatar.public_id);
       }
-      user.avatar = `${req.protocol}://${req.hostname}/${req.file.path}`;
+      // save the new avatar url
+      const rawUrl = avatar.secure_url.split('/upload/');
+      user.avatar = `${rawUrl[0]}/upload/c_limit,w_120/${rawUrl[1]}`;
       return user.save().then(() => {
         res.status(200).json({
-          url: `${req.protocol}://${req.hostname}/${req.file.path}`,
-          path: req.file.path,
+          url: avatar.secure_url,
           currentUser: user.toAuthJSON(),
         });
       });
     }).catch(next);
-  });
+  }).end(file.data);
 });
 
 
@@ -279,9 +272,9 @@ routes.post('/user/avatar', auth.required, (req, res, next) => {
 routes.delete('/user/avatar', auth.required, (req, res, next) => {
   User.findById(req.payload.id).then((user) => {
     if (!user) { return res.sendStatus(401); }
-    if (user.avatar !== undefined) {
-      const filePath = path.join(__dirname, `../../../uploads/${user.avatar.split('uploads/')[1]}`);
-      fs.unlinkSync(filePath);
+    if (user.avatar) {
+      const avatarPath = user.avatar.split('/')[6];
+      cloudinary.v2.uploader.destroy(`avatar/${avatarPath.split('.')[0]}`);
     }
 
     user.avatar = undefined;

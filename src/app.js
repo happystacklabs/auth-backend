@@ -2,6 +2,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
+import fileUpload from 'express-fileupload';
 import helmet from 'helmet';
 import path from 'path';
 import errorhandler from 'errorhandler';
@@ -31,7 +32,9 @@ app.use(require('morgan')('dev'));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use('/uploads', express.static('uploads'));
+
+// uploads
+app.use(fileUpload());
 
 
 // check if production env
