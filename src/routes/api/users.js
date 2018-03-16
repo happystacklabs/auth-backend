@@ -246,7 +246,7 @@ routes.post('/user/avatar', auth.required, (req, res, next) => {
 
   // upload image
   console.log('test');
-  return cloudinary.uploader.upload_stream((avatar) => {
+  cloudinary.uploader.upload_stream((avatar) => {
     console.log(avatar);
     console.log('in');
     User.findById(req.payload.id).then((user) => {
