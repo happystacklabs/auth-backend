@@ -268,7 +268,7 @@ routes.post('/user/avatar', auth.required, (req, res, next) => {
         });
       });
     }).catch(next);
-  }).end(file.data.buffer);
+  }).end(file.data);
 });
 
 
