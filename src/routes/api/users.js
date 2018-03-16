@@ -244,10 +244,12 @@ routes.post('/user/avatar', auth.required, (req, res, next) => {
     });
   }
 
+  console.log(file);
+  console.log(cloudinary);
+
   // upload image
   cloudinary.uploader.upload_stream({ resource_type: 'raw' }, (error, avatar) => {
     console.log(avatar);
-    console.log(cloudinary);
     console.log(error);
     User.findById(req.payload.id).then((user) => {
       if (!user) { return res.sendStatus(401); }
