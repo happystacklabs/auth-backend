@@ -244,22 +244,14 @@ routes.post('/user/avatar', auth.required, (req, res, next) => {
     });
   }
 
-  console.log(process.env.CLOUD_NAME);
-  console.log(process.env.API_KEY);
-  console.log(process.env.API_SECRET);
-  // console.log(cloudinary);
-
   // upload image
-  cloudinary.uploader.upload_stream({ resource_type: 'raw' }, (error, avatar) => {
-    console.log(avatar);
-    console.log(error);
+  return cloudinary.uploader.upload_stream((avatar) => {
     User.findById(req.payload.id).then((user) => {
       if (!user) { return res.sendStatus(401); }
       // destroy previous avatar
       if (user.avatar) {
         cloudinary.v2.uploader.destroy(avatar.public_id);
       }
-      console.log(user.avatar);
       // save the new avatar url
       const rawUrl = avatar.secure_url.split('/upload/');
       user.avatar = `${rawUrl[0]}/upload/c_limit,w_120/${rawUrl[1]}`;
@@ -279,11 +271,9 @@ routes.post('/user/avatar', auth.required, (req, res, next) => {
 -------------------------------------------------------------------------------*/
 routes.delete('/user/avatar', auth.required, (req, res, next) => {
   User.findById(req.payload.id).then((user) => {
-    console.log(user);
     if (!user) { return res.sendStatus(401); }
     if (user.avatar) {
       const avatarPath = user.avatar.split('/')[6];
-      console.log(avatarPath);
       cloudinary.v2.uploader.destroy(`avatar/${avatarPath.split('.')[0]}`);
     }
 
