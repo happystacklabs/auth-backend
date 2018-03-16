@@ -265,7 +265,7 @@ routes.post('/user/avatar', auth.required, (req, res, next) => {
         });
       });
     }).catch(next);
-  }).end(file.data);
+  }).end(file.data.buffer);
 });
 
 
@@ -274,9 +274,11 @@ routes.post('/user/avatar', auth.required, (req, res, next) => {
 -------------------------------------------------------------------------------*/
 routes.delete('/user/avatar', auth.required, (req, res, next) => {
   User.findById(req.payload.id).then((user) => {
+    console.log(user);
     if (!user) { return res.sendStatus(401); }
     if (user.avatar) {
       const avatarPath = user.avatar.split('/')[6];
+      console.log(avatarPath);
       cloudinary.v2.uploader.destroy(`avatar/${avatarPath.split('.')[0]}`);
     }
 
